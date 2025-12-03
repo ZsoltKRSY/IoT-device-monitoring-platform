@@ -33,6 +33,14 @@ public class ConsumptionEventListener {
                     deviceService.createDevice(deviceCreatedEvent);
                     break;
 
+                case "DEVICE_UPDATED":
+                    DeviceEvent deviceUpdatedEvent = objectMapper.readValue(
+                            event.payload(),
+                            DeviceEvent.class
+                    );
+                    deviceService.updateDevice(deviceUpdatedEvent);
+                    break;
+
                 case "DEVICE_DELETED":
                     DeviceEvent deviceDeletedEvent = objectMapper.readValue(
                             event.payload(),

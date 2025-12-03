@@ -128,6 +128,14 @@ public class DeviceService {
         existingDevice.setOwner(ownerOptional.get());
 
         Device updatedDevice = deviceRepository.save(existingDevice);
+
+        try {
+            String payloadJson = objectMapper.writeValueAsString(new DeviceEvent(updatedDevice.getId(), updatedDevice.getMaxConsumption()));
+            publishSyncEvent("DEVICE_UPDATED", payloadJson);
+        } catch (Exception e) {
+            LOGGER.error("Error while trying to send update device sync message {}", updatedDevice, e);
+        }
+
         LOGGER.debug("Device with id {} was updated in db", updatedDevice.getId());
         return DeviceMapper.toDeviceDetailsDTO(updatedDevice);
     }

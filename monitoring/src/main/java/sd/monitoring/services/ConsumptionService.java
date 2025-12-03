@@ -39,7 +39,7 @@ public class ConsumptionService {
     public List<ConsumptionDTO> getDeviceConsumptionForDay(Long deviceId, LocalDate day) {
         Optional<Device> deviceOptional = deviceReporitory.findById(deviceId);
         if (deviceOptional.isEmpty()) {
-            LOGGER.error("Device id {} was not found in db", deviceId);
+            LOGGER.error("Device with id {} was not found in db", deviceId);
             throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + deviceId);
         }
         Device device = deviceOptional.get();
@@ -82,7 +82,7 @@ public class ConsumptionService {
     public void processMeasurement(MeasurementEvent measurementEvent) {
         Optional<Device> deviceOptional = deviceReporitory.findById(measurementEvent.getDeviceId());
         if (deviceOptional.isEmpty()) {
-            LOGGER.error("Device id {} was not found in db", measurementEvent.getDeviceId());
+            LOGGER.error("Device with id {} was not found in db", measurementEvent.getDeviceId());
             throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + measurementEvent.getDeviceId());
         }
         Device device = deviceOptional.get();
