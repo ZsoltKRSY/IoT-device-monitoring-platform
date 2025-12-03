@@ -1,0 +1,29 @@
+<div class="consumption-wrapper">
+    <div class="header-bar">
+        <h2>Energy Consumption</h2>
+    </div>
+
+    <div *ngIf="loading" class="loading">Loading devices...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="date-picker">
+        <label>Select Day:</label>
+        <input type="date" [value]="selectedDay" (change)="onDayChange($event)" />
+    </div>
+
+    <div class="consumption-layout">
+
+        <div class="chart-area">
+            <canvas baseChart [data]="chartData" [options]="chartOptions" chartType="line" style="height: 350px;">
+            </canvas>
+        </div>
+
+        <div class="device-checkboxes">
+            <label *ngFor="let device of devices">
+                <input type="checkbox" [checked]="checked[device.id]" (change)="toggleDevice(device.id)" />
+                {{device.name}}
+            </label>
+        </div>
+
+    </div>
+</div>

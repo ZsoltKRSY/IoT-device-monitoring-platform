@@ -1,0 +1,70 @@
+<div class="register-wrapper">
+    <div class="register-card">
+        <h2 class="title">Welcome!</h2>
+        <p class="subtitle">Sign up to continue</p>
+
+        <form #registerForm="ngForm" (ngSubmit)="onSubmit(registerForm)" class="register-form">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" [(ngModel)]="username"
+                    placeholder="Enter your username" [disabled]="loading" required />
+                <div class="input-error">{{ usernameError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" [(ngModel)]="password"
+                    placeholder="Enter your password" [disabled]="loading" required />
+                <div class="input-error">{{ passwordError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="passwordConfirm">Confirm Password</label>
+                <input id="passwordConfirm" name="passwordConfirm" type="password" [(ngModel)]="passwordConfirm"
+                    placeholder="Re-enter your password" [disabled]="loading" required />
+                <div class="input-error">{{ passwordConfirmError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" [(ngModel)]="email" placeholder="Enter your email"
+                    [disabled]="loading" required />
+                <div class="input-error">{{ emailError || '\u00A0' }}</div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName"
+                    placeholder="Enter your first name" [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input id="lastName" name="lastName" type="text" [(ngModel)]="lastName"
+                    placeholder="Enter your last name" [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input id="address" name="address" type="text" [(ngModel)]="address" placeholder="Enter your address"
+                    [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <button type="submit" class="btn-register" [disabled]="loading">
+                {{ loading ? 'Signing up...' : 'Register' }}
+            </button>
+
+            <div class="input-error register-error">{{ registerError || '\u00A0' }}</div>
+
+            <p class="register-link">
+                Already have an account?
+                <a [routerLink]="['/login']">Sign in here</a>
+            </p>
+        </form>
+    </div>
+</div>

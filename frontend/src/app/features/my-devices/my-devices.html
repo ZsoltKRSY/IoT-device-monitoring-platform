@@ -1,0 +1,40 @@
+<div class="devices-wrapper">
+    <div class="header-bar">
+        <h2 class="title">My Devices</h2>
+    </div>
+
+    <div *ngIf="loading" class="loading">Loading devices...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <table *ngIf="!loading && devices.length > 0" class="devices-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Max Consumption</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let device of devices">
+                <tr class="device-row" (click)="toggleExpand(device)">
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.maxConsumption }} kWh</td>
+                    <td>{{ device.owner?.username || '—' }}</td>
+                </tr>
+                <tr *ngIf="device.expanded" class="device-details">
+                    <td colspan="4">
+                        <div class="details-box">
+                            <p><strong>Manufacturer:</strong> {{ device.manufacturer || '—' }}</p>
+                            <p><strong>Model:</strong> {{ device.model || '—' }}</p>
+                            <p><strong>Description:</strong> {{ device.description || '—' }}</p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
+        </tbody>
+    </table>
+
+    <div *ngIf="!loading && devices.length === 0" class="no-devices">
+        No devices found.
+    </div>
+</div>

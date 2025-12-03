@@ -1,0 +1,243 @@
+services:
+  # -------------------------------
+  # API Gateway
+  # -------------------------------
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      PORT: 8080
+    ports:
+      - "8080:8080" # Gateway exposed to host
+    depends_on:
+      - authentication
+      - users
+      - devices
+    networks:
+      - backend
+
+  # -------------------------------
+  # Authentication service
+  # -------------------------------
+  authentication:
+    build:
+      context: ./authentication
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      DB_IP: auth-db
+      DB_PORT: 5432
+      DB_USER: dogmedve
+      DB_PASSWORD: root
+      DB_DBNAME: sd_tema3_credentials
+      PORT: 8083
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8083:8083"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      auth-db:
+        condition: service_started
+    networks:
+      - backend
+
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: dogmedve
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd_tema3_credentials
+      # ports:
+      #   - "5435:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+      - ./sql/auth/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  # -------------------------------
+  # Users service
+  # -------------------------------
+  users:
+    build:
+      context: ./users
+      dockerfile: Dockerfile
+    container_name: users-service
+    environment:
+      DB_IP: users-db
+      DB_PORT: 5432
+      DB_USER: dogmedve
+      DB_PASSWORD: root
+      DB_DBNAME: sd_tema3_users
+      PORT: 8082
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8082:8082"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      users-db:
+        condition: service_started
+    networks:
+      - backend
+
+  users-db:
+    image: postgres:15
+    container_name: users-db
+    environment:
+      POSTGRES_USER: dogmedve
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd_tema3_users
+    # ports:
+    #   - "5434:5432"
+    volumes:
+      - users-db-data:/var/lib/postgresql/data
+      - ./sql/users/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  # -------------------------------
+  # Devices service
+  # -------------------------------
+  devices:
+    build:
+      context: ./devices
+      dockerfile: Dockerfile
+    container_name: devices-service
+    environment:
+      DB_IP: devices-db
+      DB_PORT: 5432
+      DB_USER: dogmedve
+      DB_PASSWORD: root
+      DB_DBNAME: sd_tema3_devices
+      PORT: 8081
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      devices-db:
+        condition: service_started
+    networks:
+      - backend
+
+  devices-db:
+    image: postgres:15
+    container_name: devices-db
+    environment:
+      POSTGRES_USER: dogmedve
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd_tema3_devices
+    # ports:
+    #   - "5433:5432"
+    volumes:
+      - devices-db-data:/var/lib/postgresql/data
+      - ./sql/devices/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  # -------------------------------
+  # Monitoring service
+  # -------------------------------
+  monitoring:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile
+    container_name: monitoring-service
+    environment:
+      DB_IP: monitoring-db
+      DB_PORT: 5432
+      DB_USER: dogmedve
+      DB_PASSWORD: root
+      DB_DBNAME: sd_tema3_monitoring
+      PORT: 8084
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8084:8084"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      monitoring-db:
+        condition: service_started
+    networks:
+      - backend
+
+  monitoring-db:
+    image: postgres:15
+    container_name: monitoring-db
+    environment:
+      POSTGRES_USER: dogmedve
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd_tema3_monitoring
+      # ports:
+      #   - "5435:5432"
+    volumes:
+      - monitoring-db-data:/var/lib/postgresql/data
+      - ./sql/monitoring/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  # -------------------------------
+  # Frontend (Angular)
+  # -------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: angular-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - backend
+
+  # -------------------------------
+  # RabbitMQ Message Broker
+  # -------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # AMQP protocol port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# -------------------------------
+# Networks & Volumes
+# -------------------------------
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  devices-db-data:
+  users-db-data:
+  auth-db-data:
+  monitoring-db-data:

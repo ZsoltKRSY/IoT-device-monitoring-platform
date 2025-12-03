@@ -1,0 +1,138 @@
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 99vh;
+    padding-top: 1vh;
+    background: #fafafa;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.register-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.register-card {
+    background: white;
+    padding: 2rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #c0392b;
+    margin-bottom: 0.25rem;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.form-group {
+    text-align: left;
+    width: 100%;
+}
+
+
+label {
+    display: block;
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 0.4rem;
+}
+
+input {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+    border-color: #c0392b;
+    box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.15);
+    outline: none;
+}
+
+.btn-register {
+    background-color: #c0392b;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-register:hover:not(:disabled) {
+    background-color: #a93226;
+    transform: translateY(-1px);
+}
+
+.btn-register:disabled {
+    background-color: #e6e6e6;
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+.footer {
+    margin-top: 1.5rem;
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.register-link a {
+    color: #c0392b;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.25rem;
+    transition: color 0.2s;
+}
+
+.register-link a:hover {
+    color: #a93226;
+}
+
+.input-error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    min-height: 1.1em;
+}
+
+.register-error {
+    text-align: center;
+    margin-top: 0.5rem;
+    min-height: 1.1em;
+}

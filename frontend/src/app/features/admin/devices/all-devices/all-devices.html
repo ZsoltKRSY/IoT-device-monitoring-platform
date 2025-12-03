@@ -1,0 +1,59 @@
+<div class="devices-wrapper">
+    <div class="header-bar">
+        <h2 class="title">All Devices</h2>
+
+        <div class="controls">
+            <label for="userFilter">Filter by Owner:</label>
+            <select id="userFilter" [(ngModel)]="selectedUserId" (change)="filterDevices()">
+                <option value="">All</option>
+                <option *ngFor="let user of users" [value]="user.id">{{ user.username }}</option>
+            </select>
+
+            <button class="btn add-btn" (click)="onAdd($event)">+ Add Device</button>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">Loading devices...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <table *ngIf="!loading && filteredDevices.length > 0" class="devices-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Max Consumption</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let device of filteredDevices">
+                <tr class="device-row" (click)="toggleExpand(device)">
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.maxConsumption }} kWh</td>
+                    <td>{{ device.owner?.username || '—' }}</td>
+                </tr>
+                <tr *ngIf="device.expanded" class="device-details">
+                    <td colspan="4">
+                        <div class="details-box">
+                            <p><strong>Manufacturer:</strong> {{ device.manufacturer || '—' }}</p>
+                            <p><strong>Model:</strong> {{ device.model || '—' }}</p>
+                            <p><strong>Description:</strong> {{ device.description || '—' }}</p>
+                            <div class="action-buttons">
+                                <button class="btn edit-btn" (click)="onEdit(device, $event)">Edit</button>
+                                <button class="btn delete-btn" (click)="onDelete(device, $event)">Delete</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
+        </tbody>
+    </table>
+
+    <div *ngIf="!loading && filteredDevices.length === 0" class="no-devices">
+        No devices found.
+    </div>
+
+    <app-confirm-dialog *ngIf="confirmDevice" [title]="'Delete Device'"
+        [message]="'Are you sure you want to delete ' + confirmDevice.name + '?'"
+        (confirm)="deleteDevice(confirmDevice)" (cancel)="confirmDevice = null">
+    </app-confirm-dialog>
+</div>

@@ -1,0 +1,61 @@
+<div class="users-wrapper">
+    <div class="header-bar">
+        <h2 class="title">All Users</h2>
+
+        <div class="controls">
+            <label for="roleFilter">Filter by Role:</label>
+            <select id="roleFilter" [(ngModel)]="selectedRole" (change)="filterUsers()">
+                <option value="">All</option>
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+            </select>
+
+            <button class="btn add-btn" (click)="onAdd($event)">+ Add User</button>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="loading">Loading users...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <table *ngIf="!loading && filteredUsers.length > 0" class="users-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let user of filteredUsers">
+                <tr class="user-row" (click)="toggleExpand(user)">
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                </tr>
+                <tr *ngIf="user.expanded" class="user-details">
+                    <td colspan="4">
+                        <div class="details-box">
+                            <p><strong>First Name:</strong> {{ user.firstName || '—' }}</p>
+                            <p><strong>Last Name:</strong> {{ user.lastName || '—' }}</p>
+                            <p><strong>Address:</strong> {{ user.address || '—' }}</p>
+                            <div class="action-buttons">
+                                <button class="btn edit-btn" (click)="onEdit(user, $event)">Edit</button>
+                                <button class="btn delete-btn" (click)="onDelete(user, $event)">Delete</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
+        </tbody>
+    </table>
+
+    <div *ngIf="!loading && filteredUsers.length === 0" class="no-users">
+        No users found.
+    </div>
+
+    <app-confirm-dialog *ngIf="confirmUser" [title]="'Delete User'"
+        [message]="'Are you sure you want to delete ' + confirmUser.username + '?'" (confirm)="deleteUser(confirmUser)"
+        (cancel)="confirmUser = null">
+    </app-confirm-dialog>
+
+</div>

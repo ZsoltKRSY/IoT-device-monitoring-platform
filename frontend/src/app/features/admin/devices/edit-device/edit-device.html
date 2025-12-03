@@ -1,0 +1,58 @@
+<div class="edit-wrapper">
+    <div class="edit-card">
+        <h2 class="title">Edit Device</h2>
+
+        <form #editForm="ngForm" (ngSubmit)="onSubmit(editForm)" class="edit-form">
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" [(ngModel)]="name" placeholder="Enter device name"
+                    [disabled]="loading" required />
+                <div class="input-error">{{ nameError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="maxConsumption">Maximum Consumption</label>
+                <input id="maxConsumption" name="maxConsumption" type="number" step="0.01" min="0"
+                    [(ngModel)]="maxConsumption" placeholder="Device maximum consumption" [disabled]="loading"
+                    required />
+                <div class="input-error">{{ maxConsumptionError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="manufacturer">Manufacturer</label>
+                <input id="manufacturer" name="manufacturer" type="text" [(ngModel)]="manufacturer"
+                    placeholder="Enter device manufacturer" [disabled]="loading" required />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="model">Model</label>
+                <input id="model" name="model" type="text" [(ngModel)]="model" placeholder="Enter device model"
+                    [disabled]="loading" required />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" [(ngModel)]="description"
+                    placeholder="Enter device description" [disabled]="loading" rows="4" required></textarea>
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="users">Owner</label>
+                <select id="users" name="owner" [(ngModel)]="ownerId">
+                    <option [ngValue]="null">None</option>
+                    <option *ngFor="let user of users" [value]="user.id">{{ user.username }}</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-update" [disabled]="loading">
+                {{ loading ? 'Updating Device...' : 'Update Device' }}
+            </button>
+
+            <div class="input-error edit-error">{{ editError || '\u00A0' }}</div>
+        </form>
+    </div>
+</div>

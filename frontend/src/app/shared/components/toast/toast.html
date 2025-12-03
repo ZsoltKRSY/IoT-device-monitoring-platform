@@ -1,0 +1,11 @@
+<div class="toast-wrapper" aria-live="polite" aria-atomic="true">
+    <div *ngFor="let t of toasts()" class="toast" [ngClass]="t.type">
+        <div class="toast-inner">
+            <div class="toast-header">
+                <strong class="toast-title" *ngIf="t.title">{{ t.title }}</strong>
+                <button class="close-btn" (click)="close(t.id)" aria-label="close">✕</button>
+            </div>
+            <div class="toast-body">{{ t.message }}</div>
+        </div>
+    </div>
+</div>

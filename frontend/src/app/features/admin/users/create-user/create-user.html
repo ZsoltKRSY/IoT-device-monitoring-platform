@@ -1,0 +1,71 @@
+<div class="create-wrapper">
+    <div class="create-card">
+        <h2 class="title">Add new User</h2>
+
+        <form #createForm="ngForm" (ngSubmit)="onSubmit(createForm)" class="create-form">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" [(ngModel)]="username" placeholder="Enter username"
+                    [disabled]="loading" required />
+                <div class="input-error">{{ usernameError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" [(ngModel)]="password"
+                    placeholder="Enter user password" [disabled]="loading" required />
+                <div class="input-error">{{ passwordError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="passwordConfirm">Confirm Password</label>
+                <input id="passwordConfirm" name="passwordConfirm" type="password" [(ngModel)]="passwordConfirm"
+                    placeholder="Re-enter user password" [disabled]="loading" required />
+                <div class="input-error">{{ passwordConfirmError || '\u00A0' }}</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" [(ngModel)]="email" placeholder="Enter user email"
+                    [disabled]="loading" required />
+                <div class="input-error">{{ emailError || '\u00A0' }}</div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName"
+                    placeholder="Enter user first name" [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input id="lastName" name="lastName" type="text" [(ngModel)]="lastName"
+                    placeholder="Enter user last name" [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input id="address" name="address" type="text" [(ngModel)]="address" placeholder="Enter user address"
+                    [disabled]="loading" />
+                <div class="input-error">&nbsp;</div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" [(ngModel)]="isAdmin" name="isAdmin" [disabled]="loading" />
+                    Make this user an Admin
+                </label>
+            </div>
+
+            <button type="submit" class="btn-add" [disabled]="loading">
+                {{ loading ? 'Adding new User...' : 'Add User' }}
+            </button>
+
+            <div class="input-error create-error">{{ createError || '\u00A0' }}</div>
+        </form>
+    </div>
+</div>
