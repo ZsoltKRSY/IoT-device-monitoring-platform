@@ -30,7 +30,20 @@ public class DeviceService {
         }
 
         device = deviceReporitory.save(device);
-        LOGGER.debug("Device id {} was inserted in db", device.getId());
+        LOGGER.debug("Device with id {} was inserted in db", device.getId());
+    }
+
+    public void updateDevice(DeviceEvent deviceCreated) {
+        Optional<Device> existingDeviceOptional = deviceReporitory.findById(deviceCreated.getDeviceId());
+        if (existingDeviceOptional.isEmpty()) {
+            LOGGER.error("Device with id {} not found in the db", deviceCreated.getDeviceId());
+            throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + deviceCreated.getDeviceId());
+        }
+
+        Device existingDevice = existingDeviceOptional.get();
+        existingDevice.setMaxConsumption(deviceCreated.getMaxConsumption());
+        existingDevice = deviceReporitory.save(existingDevice);
+        LOGGER.debug("Device with id {} was updated in db", existingDevice.getId());
     }
 
     public void deleteDevice(Long id) {

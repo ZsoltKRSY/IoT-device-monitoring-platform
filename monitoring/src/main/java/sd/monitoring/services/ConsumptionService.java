@@ -1,11 +1,15 @@
 package sd.monitoring.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sd.monitoring.dtos.ConsumptionDTO;
 import sd.monitoring.dtos.MeasurementEvent;
+import sd.monitoring.dtos.OverconsumptionEvent;
+import sd.monitoring.dtos.SyncEvent;
 import sd.monitoring.entities.Consumption;
 import sd.monitoring.entities.Device;
 import sd.monitoring.handlers.models.ResourceNotFoundException;
@@ -22,6 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static sd.monitoring.config.RabbitMQConfig.SYNC_EXCHANGE;
+
 @Service
 public class ConsumptionService {
 
@@ -30,16 +36,26 @@ public class ConsumptionService {
     private final ConsumptionRepository consumptionRepository;
     private final DeviceReporitory deviceReporitory;
 
-    public ConsumptionService(ConsumptionRepository consumptionRepository, DeviceReporitory deviceReporitory) {
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
+
+    public ConsumptionService(ConsumptionRepository consumptionRepository, DeviceReporitory deviceReporitory, RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
         this.consumptionRepository = consumptionRepository;
         this.deviceReporitory = deviceReporitory;
+        this.rabbitTemplate = rabbitTemplate;
+        this.objectMapper = objectMapper;
+    }
+
+    private void publishSyncEvent(String type, String payload) {
+        SyncEvent event = new SyncEvent(type, payload);
+        rabbitTemplate.convertAndSend(SYNC_EXCHANGE, "", event);
     }
 
     @Transactional
     public List<ConsumptionDTO> getDeviceConsumptionForDay(Long deviceId, LocalDate day) {
         Optional<Device> deviceOptional = deviceReporitory.findById(deviceId);
         if (deviceOptional.isEmpty()) {
-            LOGGER.error("Device id {} was not found in db", deviceId);
+            LOGGER.error("Device with id {} was not found in db", deviceId);
             throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + deviceId);
         }
         Device device = deviceOptional.get();
@@ -82,7 +98,7 @@ public class ConsumptionService {
     public void processMeasurement(MeasurementEvent measurementEvent) {
         Optional<Device> deviceOptional = deviceReporitory.findById(measurementEvent.getDeviceId());
         if (deviceOptional.isEmpty()) {
-            LOGGER.error("Device id {} was not found in db", measurementEvent.getDeviceId());
+            LOGGER.error("Device with id {} was not found in db", measurementEvent.getDeviceId());
             throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + measurementEvent.getDeviceId());
         }
         Device device = deviceOptional.get();
@@ -107,6 +123,25 @@ public class ConsumptionService {
 
         entry.setTotalConsumption(entry.getTotalConsumption() + measurementEvent.getValue());
         entry.setMeasurementCount(entry.getMeasurementCount() + 1);
+
+        float deviceConsumption = entry.getTotalConsumption().floatValue();
+        if (deviceConsumption > device.getMaxConsumption()) {
+            try {
+                String payloadJson = objectMapper.writeValueAsString(
+                        OverconsumptionEvent.builder()
+                                .deviceId(device.getId())
+                                .day(day)
+                                .hour(hour)
+                                .currentConsumption(deviceConsumption)
+                                .measurementCount(entry.getMeasurementCount())
+                                .build()
+
+                );
+                publishSyncEvent("OVERCONSUMPTION", payloadJson);
+            } catch (Exception e) {
+                LOGGER.error("Error while trying to send device overconsumption sync message {}", device, e);
+            }
+        }
 
         consumptionRepository.save(entry);
     }

@@ -3,6 +3,7 @@ package sd.devices.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+import sd.devices.dtos.OverconsumptionEvent;
 import sd.devices.dtos.SyncEvent;
 import sd.devices.dtos.UserIdEvent;
 import sd.devices.dtos.UserOperationEvent;
@@ -42,8 +43,16 @@ public class DeviceEventListener {
                     userService.deleteUser(userDeletedEvent.getUserId());
                     break;
 
+                case "OVERCONSUMPTION":
+                    OverconsumptionEvent overconsumptionEvent = objectMapper.readValue(
+                            event.payload(),
+                            OverconsumptionEvent.class
+                    );
+                    deviceService.manageOverconsumption(overconsumptionEvent);
+                    break;
+
                 default:
-                    System.out.println("Ignored event: " + event.eventType());
+                    //System.out.println("Ignored event: " + event.eventType());
             }
         } catch (Exception e) {
             System.err.println("Error processing sync event: " + e.getMessage());

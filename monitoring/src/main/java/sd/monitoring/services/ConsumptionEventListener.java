@@ -33,6 +33,14 @@ public class ConsumptionEventListener {
                     deviceService.createDevice(deviceCreatedEvent);
                     break;
 
+                case "DEVICE_UPDATED":
+                    DeviceEvent deviceUpdatedEvent = objectMapper.readValue(
+                            event.payload(),
+                            DeviceEvent.class
+                    );
+                    deviceService.updateDevice(deviceUpdatedEvent);
+                    break;
+
                 case "DEVICE_DELETED":
                     DeviceEvent deviceDeletedEvent = objectMapper.readValue(
                             event.payload(),
@@ -50,7 +58,7 @@ public class ConsumptionEventListener {
                     break;
 
                 default:
-                    System.out.println("Ignored event: " + event.eventType());
+                    //System.out.println("Ignored event: " + event.eventType());
             }
         } catch (Exception e) {
             System.err.println("Error processing sync event: " + e.getMessage());
