@@ -1,0 +1,48 @@
+<div class="chat-popup">
+
+    <div class="chat-header">
+        Support Chat <div *ngIf="username !== ''">{{ username }}</div>
+    </div>
+
+    <div class="chat-mode-toggle" *ngIf="mode === 'user'">
+        <div class="chat-mode-option" [class.active]="chatTarget === 'admin'" (click)="switchTarget('admin')">
+            Admin
+        </div>
+        <div class="chat-mode-option" [class.active]="chatTarget === 'ai'" (click)="switchTarget('ai')">
+            AI
+        </div>
+    </div>
+
+    <div class="chat-body">
+        <div *ngFor="let msg of messages" [ngClass]="getAlignmentClass(msg)">
+
+            <ng-container *ngIf="msg.sender === 'system'">
+                <div class="chat-system-message">
+                    <hr>
+                    <span class="chat-text">⚙️ **System Update:** {{ msg.text }}</span>
+                    <hr>
+                    <span class="chat-system-footer">This is a system notification.</span>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="msg.sender !== 'system'">
+                <div class="chat-bubble" [ngClass]="msg.sender">
+                    <span class="chat-text">{{ msg.text }}</span>
+                    <span class="chat-time">{{ msg.timestamp | date:'shortTime' }}</span>
+                </div>
+            </ng-container>
+        </div>
+
+        <div *ngIf="loading && chatTarget === 'ai'" class="other">
+            <div class="ai chat-bubble loading">
+                <span class="chat-text">Thinking</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <input [(ngModel)]="newMessage" placeholder="Type your message..." (keydown.enter)="sendMessage()" />
+        <button (click)="sendMessage()">Send</button>
+    </div>
+
+</div>

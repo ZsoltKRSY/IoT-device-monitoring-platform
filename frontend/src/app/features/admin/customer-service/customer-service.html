@@ -1,0 +1,27 @@
+<div class="admin-chat-view">
+
+    <div class="admin-status-bar">
+        <span>Admin ID: {{ adminId }} | Status:
+            <span
+                [ngClass]="{'status-connected': connectionStatus === 'Connected', 'status-connecting': connectionStatus !== 'Connected'}">
+                {{ connectionStatus }}
+            </span>
+        </span>
+        <span class="session-count">{{ openSessions.length }} active session(s)</span>
+    </div>
+
+    <div class="chat-windows-container">
+        <app-chat *ngFor="let session of openSessions; let i = index" class="admin-chat-window"
+            [ngStyle]="{'right': (20 + (i * 340)) + 'px'}" mode="admin" [userId]="session.userId"
+            [username]="session.userName" [targetUserId]="session.targetUserId" [messages]="session.messages">
+            <div class="chat-header-admin">
+                <span>{{ session.userName }}</span>
+                <button (click)="closeSession(session.targetUserId)" title="Close Chat">
+                    &times;
+                </button>
+            </div>
+
+        </app-chat>
+    </div>
+
+</div>

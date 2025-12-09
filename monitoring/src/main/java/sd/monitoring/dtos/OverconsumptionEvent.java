@@ -2,6 +2,7 @@ package sd.monitoring.dtos;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Getter
@@ -9,11 +10,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OverconsumptionEvent {
+public class OverconsumptionEvent implements Serializable {
     private Long deviceId;
     private LocalDate day;
     private Integer hour;
     private Float currentConsumption;
-    private Float maxConsumption;
     private Integer measurementCount;
 }

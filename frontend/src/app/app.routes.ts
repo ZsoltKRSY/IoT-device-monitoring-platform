@@ -11,6 +11,7 @@ export const routes: Routes = [
     { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.Register), canActivate: [loginRegisterGuard] },
     { path: 'admin/users', loadComponent: () => import('./features/admin/users/all-users/all-users').then(m => m.AllUsers), canActivate: [adminGuard] },
     { path: 'admin/devices', loadComponent: () => import('./features/admin/devices/all-devices/all-devices').then(m => m.AllDevices), canActivate: [adminGuard] },
+    { path: 'admin/customer-service', loadComponent: () => import('./features/admin/customer-service/customer-service').then(m => m.CustomerService), canActivate: [adminGuard] },
     { path: 'admin/create-device', loadComponent: () => import('./features/admin/devices/create-device/create-device').then(m => m.CreateDevice), canActivate: [adminGuard] },
     { path: 'admin/edit-device/:id', loadComponent: () => import('./features/admin/devices/edit-device/edit-device').then(m => m.EditDevice), canActivate: [adminGuard] },
     { path: 'admin/create-user', loadComponent: () => import('./features/admin/users/create-user/create-user').then(m => m.CreateUser), canActivate: [adminGuard] },

@@ -5,10 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import sd.devices.dtos.DeviceDetailsDTO;
-import sd.devices.dtos.DeviceEvent;
-import sd.devices.dtos.DeviceOperationDTO;
-import sd.devices.dtos.SyncEvent;
+import org.springframework.transaction.annotation.Transactional;
+import sd.devices.dtos.*;
 import sd.devices.dtos.mappers.DeviceMapper;
 import sd.devices.entities.Device;
 import sd.devices.entities.User;
@@ -77,6 +75,7 @@ public class DeviceService {
         return DeviceMapper.toDeviceDetailsDTO(deviceOptional.get());
     }
 
+    @Transactional
     public DeviceDetailsDTO createDevice(DeviceOperationDTO deviceOperationDTO) {
         Device device = DeviceMapper.toDeviceEntity(deviceOperationDTO);
 
@@ -106,6 +105,7 @@ public class DeviceService {
         return DeviceMapper.toDeviceDetailsDTO(device);
     }
 
+    @Transactional
     public DeviceDetailsDTO updateDevice(Long id, DeviceOperationDTO deviceOperationDTO) {
         Optional<Device> deviceOptional = deviceRepository.findById(id);
         if (deviceOptional.isEmpty()) {
@@ -140,6 +140,7 @@ public class DeviceService {
         return DeviceMapper.toDeviceDetailsDTO(updatedDevice);
     }
 
+    @Transactional
     public void deleteDevice(Long id) {
         deviceRepository.deleteById(id);
 
@@ -153,6 +154,7 @@ public class DeviceService {
         LOGGER.debug("Device with id {} was deleted from the db", id);
     }
 
+    @Transactional
     public void removeUserFromDevices(Long id) {
         Optional<User> ownerOptional = userRepository.findById(id);
         if (ownerOptional.isEmpty()) {
@@ -169,6 +171,38 @@ public class DeviceService {
         userRepository.deleteById(id);
 
         LOGGER.debug("Removed user id {} from every device owned by them", id);
+    }
+
+    public void manageOverconsumption(OverconsumptionEvent overconsumptionEvent) {
+        Optional<Device> deviceOptional = deviceRepository.findById(overconsumptionEvent.getDeviceId());
+        if (deviceOptional.isEmpty()) {
+            LOGGER.error("Device with id {} was not found in db", overconsumptionEvent.getDeviceId());
+            throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + overconsumptionEvent.getDeviceId());
+        }
+
+        Device device = deviceOptional.get();
+        
+        if (device.getOwner() != null) {
+            Long userId = device.getOwner().getId();
+
+            OverconsumptionDetailedEvent event = OverconsumptionDetailedEvent.builder()
+                    .deviceId(device.getId())
+                    .deviceName(device.getName())
+                    .userId(userId)
+                    .day(overconsumptionEvent.getDay())
+                    .hour(overconsumptionEvent.getHour())
+                    .currentConsumption(overconsumptionEvent.getCurrentConsumption())
+                    .maxConsumption(device.getMaxConsumption())
+                    .measurementCount(overconsumptionEvent.getMeasurementCount())
+                    .build();
+
+            try {
+                String payloadJson = objectMapper.writeValueAsString(event);
+                publishSyncEvent("OVERCONSUMPTION_DETAILED", payloadJson);
+            } catch (Exception e) {
+                LOGGER.error("Error while trying to send detailed device overconsumption sync message", e);
+            }
+        }
     }
 
 }

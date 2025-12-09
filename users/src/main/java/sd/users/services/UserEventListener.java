@@ -48,7 +48,7 @@ public class UserEventListener {
                     break;
 
                 default:
-                    System.out.println("Ignored event: " + event.eventType());
+                    //System.out.println("Ignored event: " + event.eventType());
             }
         } catch (Exception e) {
             System.err.println("Error processing sync event: " + e.getMessage());

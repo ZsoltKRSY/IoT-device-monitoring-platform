@@ -46,6 +46,11 @@ services:
         condition: service_started
     networks:
       - backend
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/auth" ]
+      interval: 3s
+      timeout: 2s
+      retries: 5
 
   auth-db:
     image: postgres:15
@@ -195,6 +200,32 @@ services:
       - backend
 
   # -------------------------------
+  # WebSocket service
+  # -------------------------------
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: websocket-service
+    environment:
+      PORT: 8086
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8086:8086"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      ollama-model:
+        condition: service_started
+      authentication:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # -------------------------------
   # Frontend (Angular)
   # -------------------------------
   frontend:
@@ -229,6 +260,27 @@ services:
       timeout: 5s
       retries: 5
 
+  # -------------------------------
+  # Ollama
+  # -------------------------------
+  ollama-model:
+    build:
+      context: ./ollama-model
+      dockerfile: ./Dockerfile
+    container_name: ollama-model
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 10G
+        reservations:
+          memory: 8G
+
 # -------------------------------
 # Networks & Volumes
 # -------------------------------
@@ -241,3 +293,4 @@ volumes:
   users-db-data:
   auth-db-data:
   monitoring-db-data:
+  ollama-data:
