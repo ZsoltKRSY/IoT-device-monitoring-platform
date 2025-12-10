@@ -21,7 +21,7 @@ public class DataRouterService {
 
     private int getTargetReplicaIndex(Long deviceId) {
         int index = (int) (deviceId % replicaCount);
-        return Math.abs(index);
+        return Math.abs(index) + 1;
     }
 
     public void routeEvent(MeasurementEvent event) {

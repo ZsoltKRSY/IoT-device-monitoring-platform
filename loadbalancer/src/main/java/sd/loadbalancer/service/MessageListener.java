@@ -18,7 +18,6 @@ public class MessageListener {
     @RabbitListener(queues = INPUT_QUEUE)
     public void handleDeviceMeasurement(MeasurementEvent event) {
         if (event != null) {
-            System.out.println(event.getDeviceId() + " " + event.getValue() + "\n\n");
             routerService.routeEvent(event);
         }
     }

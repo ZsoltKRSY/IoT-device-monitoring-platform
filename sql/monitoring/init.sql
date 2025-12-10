@@ -12,4 +12,10 @@ create table if not exists devices (
         max_consumption real not null
 );
 
+CREATE TABLE replica_lock (
+    replica_id INT PRIMARY KEY,
+    locked_by VARCHAR(255) NOT NULL,
+    claimed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 alter table consumption add constraint fk_device foreign key(device_id) references devices(id);

@@ -19,7 +19,7 @@ public class RabbitMQConfig {
     public static final String INPUT_QUEUE = "device.data.input";
     public static final String INGEST_EXCHANGE = "monitoring.ingest.exchange";
 
-    @Value("${loadbalancer.monitoring.replicas:4}")
+    @Value("${loadbalancer.monitoring.replicas:5}")
     @Getter
     private int replicaCount;
 
@@ -37,7 +37,7 @@ public class RabbitMQConfig {
     public Queue[] ingestQueues() {
         Queue[] queues = new Queue[replicaCount];
         for (int i = 0; i < replicaCount; i++) {
-            queues[i] = new Queue("ingest.replica." + i, true);
+            queues[i] = new Queue("ingest.replica." + (i + 1), false);
         }
         return queues;
     }
