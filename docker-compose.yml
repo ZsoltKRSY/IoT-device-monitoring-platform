@@ -226,6 +226,28 @@ services:
       - backend
 
   # -------------------------------
+  # LoadBalancer service
+  # -------------------------------
+  loadbalancer:
+    build:
+      context: ./loadbalancer
+      dockerfile: Dockerfile
+    container_name: loadbalancer-service
+    environment:
+      PORT: 8087
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8087:8087"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # -------------------------------
   # Frontend (Angular)
   # -------------------------------
   frontend:
