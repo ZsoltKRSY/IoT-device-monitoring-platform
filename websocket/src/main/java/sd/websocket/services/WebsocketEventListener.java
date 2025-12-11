@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import sd.websocket.dtos.OverconsumptionDetailedEvent;
 import sd.websocket.dtos.SyncEvent;
 
-import static sd.websocket.config.RabbitMQConfig.SYNC_QUEUE;
+import static sd.websocket.config.RabbitMQConfig.OVERCONSUMPTION_DETAILED_QUEUE;
 
 @Service
 public class WebsocketEventListener {
@@ -18,21 +18,14 @@ public class WebsocketEventListener {
         this.objectMapper = objectMapper;
     }
 
-    @RabbitListener(queues = SYNC_QUEUE)
+    @RabbitListener(queues = OVERCONSUMPTION_DETAILED_QUEUE)
     public void handleSyncEvent(SyncEvent event) {
         try {
-            switch (event.eventType()) {
-                case "OVERCONSUMPTION_DETAILED":
-                    OverconsumptionDetailedEvent details = objectMapper.readValue(
-                            event.payload(),
-                            OverconsumptionDetailedEvent.class
-                    );
-                    overconsumptionService.sendOverconsumptionDetails(details);
-                    break;
-
-                default:
-                    //System.out.println("Ignored event: " + event.eventType());
-            }
+            OverconsumptionDetailedEvent details = objectMapper.readValue(
+                    event.payload(),
+                    OverconsumptionDetailedEvent.class
+            );
+            overconsumptionService.sendOverconsumptionDetails(details);
         } catch (Exception e) {
             System.err.println("Error processing sync event: " + e.getMessage());
         }

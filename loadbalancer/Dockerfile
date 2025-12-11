@@ -4,15 +4,15 @@ ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV CATALINA_OPTS="-Duser.timezone=UTC"
 
-COPY ./pom.xml /monitoring/pom.xml
-WORKDIR /monitoring
+COPY ./pom.xml /loadbalancer/pom.xml
+WORKDIR /loadbalancer
 RUN mvn dependency:go-offline
-COPY ./src/ /monitoring/src
-WORKDIR /monitoring
+COPY ./src/ /loadbalancer/src
+WORKDIR /loadbalancer
 RUN mvn clean install -DskipTests
 
 FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
-COPY --from=build /monitoring/target/monitoring-0.0.1-SNAPSHOT.jar /app/monitoring.jar
-EXPOSE 8084
-ENTRYPOINT ["java", "-jar", "monitoring.jar"]
+COPY --from=build /loadbalancer/target/loadbalancer-0.0.1-SNAPSHOT.jar /app/loadbalancer.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "loadbalancer.jar"]

@@ -17,7 +17,7 @@ import sd.devices.repositories.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
-import static sd.devices.config.RabbitMQConfig.SYNC_EXCHANGE;
+import static sd.devices.config.RabbitMQConfig.*;
 
 @Service
 public class DeviceService {
@@ -40,6 +40,11 @@ public class DeviceService {
     private void publishSyncEvent(String type, String payload) {
         SyncEvent event = new SyncEvent(type, payload);
         rabbitTemplate.convertAndSend(SYNC_EXCHANGE, "", event);
+    }
+
+    private void publishOverconsumptionEvent(String type, String payload) {
+        SyncEvent event = new SyncEvent(type, payload);
+        rabbitTemplate.convertAndSend(OVERCONSUMPTION_DETAILED_EXCHANGE, OVERCONSUMPTION_DETAILED_QUEUE, event);
     }
 
     public List<DeviceDetailsDTO> getAllDevices() {
@@ -113,10 +118,16 @@ public class DeviceService {
             throw new ResourceNotFoundException(Device.class.getSimpleName() + " with id: " + id);
         }
 
-        Optional<User> ownerOptional = userRepository.findById(deviceOperationDTO.getUserId());
-        if (ownerOptional.isEmpty()) {
-            LOGGER.error("User id {} was not found in db", deviceOperationDTO.getUserId());
-            throw new ResourceNotFoundException(User.class.getSimpleName() + " with id: " + deviceOperationDTO.getUserId());
+        User owner = null;
+        if (deviceOperationDTO.getUserId() != null) {
+            Optional<User> ownerOptional = userRepository.findById(deviceOperationDTO.getUserId());
+
+            if (ownerOptional.isEmpty()) {
+                LOGGER.error("User id {} was not found in db", deviceOperationDTO.getUserId());
+                throw new ResourceNotFoundException(User.class.getSimpleName() + " with id: " + deviceOperationDTO.getUserId());
+            }
+
+            owner = ownerOptional.get();
         }
 
         Device existingDevice = deviceOptional.get();
@@ -125,7 +136,7 @@ public class DeviceService {
         existingDevice.setManufacturer(deviceOperationDTO.getManufacturer());
         existingDevice.setModel(deviceOperationDTO.getModel());
         existingDevice.setDescription(deviceOperationDTO.getDescription());
-        existingDevice.setOwner(ownerOptional.get());
+        existingDevice.setOwner(owner);
 
         Device updatedDevice = deviceRepository.save(existingDevice);
 
@@ -181,7 +192,7 @@ public class DeviceService {
         }
 
         Device device = deviceOptional.get();
-        
+
         if (device.getOwner() != null) {
             Long userId = device.getOwner().getId();
 
@@ -198,7 +209,7 @@ public class DeviceService {
 
             try {
                 String payloadJson = objectMapper.writeValueAsString(event);
-                publishSyncEvent("OVERCONSUMPTION_DETAILED", payloadJson);
+                publishOverconsumptionEvent("OVERCONSUMPTION_DETAILED", payloadJson);
             } catch (Exception e) {
                 LOGGER.error("Error while trying to send detailed device overconsumption sync message", e);
             }

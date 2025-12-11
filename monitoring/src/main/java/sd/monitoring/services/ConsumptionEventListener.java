@@ -7,6 +7,7 @@ import sd.monitoring.dtos.DeviceEvent;
 import sd.monitoring.dtos.MeasurementEvent;
 import sd.monitoring.dtos.SyncEvent;
 
+import static sd.monitoring.config.RabbitMQConfig.INGEST_QUEUE_BASE;
 import static sd.monitoring.config.RabbitMQConfig.SYNC_QUEUE;
 
 @Service
@@ -19,6 +20,11 @@ public class ConsumptionEventListener {
         this.deviceService = deviceService;
         this.consumptionService = consumptionService;
         this.objectMapper = objectMapper;
+    }
+
+    @RabbitListener(queues = INGEST_QUEUE_BASE + "#{dynamicReplicaId}")
+    public void handleMeasurementIngestion(MeasurementEvent measurementEvent) {
+        consumptionService.processMeasurement(measurementEvent);
     }
 
     @RabbitListener(queues = SYNC_QUEUE)
@@ -47,14 +53,6 @@ public class ConsumptionEventListener {
                             DeviceEvent.class
                     );
                     deviceService.deleteDevice(deviceDeletedEvent.getDeviceId());
-                    break;
-
-                case "MEASUREMENT_EVENT":
-                    MeasurementEvent measurementEvent = objectMapper.readValue(
-                            event.payload(),
-                            MeasurementEvent.class
-                    );
-                    consumptionService.processMeasurement(measurementEvent);
                     break;
 
                 default:

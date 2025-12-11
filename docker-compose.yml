@@ -48,9 +48,10 @@ services:
       - backend
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8083/auth" ]
-      interval: 3s
-      timeout: 2s
+      interval: 5s
+      timeout: 3s
       retries: 5
+      start_period: 5s
 
   auth-db:
     image: postgres:15
@@ -156,13 +157,13 @@ services:
       - backend
 
   # -------------------------------
-  # Monitoring service
+  # Monitoring service (SCALED for Swarm)
   # -------------------------------
   monitoring:
     build:
       context: ./monitoring
       dockerfile: Dockerfile
-    container_name: monitoring-service
+    image: sd/monitoring:latest
     environment:
       DB_IP: monitoring-db
       DB_PORT: 5432
@@ -174,8 +175,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-    ports:
-      - "8084:8084"
+    # ports:
+    #   - "8084:8084" 
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -183,6 +184,9 @@ services:
         condition: service_started
     networks:
       - backend
+    deploy:
+      mode: replicated
+      replicas: 5
 
   monitoring-db:
     image: postgres:15
@@ -221,6 +225,28 @@ services:
       ollama-model:
         condition: service_started
       authentication:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # -------------------------------
+  # LoadBalancer service
+  # -------------------------------
+  loadbalancer:
+    build:
+      context: ./loadbalancer
+      dockerfile: Dockerfile
+    container_name: loadbalancer-service
+    environment:
+      PORT: 8087
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8087:8087"
+    depends_on:
+      rabbitmq:
         condition: service_healthy
     networks:
       - backend

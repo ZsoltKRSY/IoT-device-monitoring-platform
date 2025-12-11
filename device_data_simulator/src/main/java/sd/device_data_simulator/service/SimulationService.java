@@ -20,8 +20,6 @@ public class SimulationService {
     private final DevicesCache devicesCache;
     private final MeasurementProducer producer;
 
-    private final ObjectMapper objectMapper;
-
     private long currentTimestamp;
     private final Map<Long, Double> baseLoadMap = new HashMap<>();
 
@@ -30,16 +28,15 @@ public class SimulationService {
     private static final long TEN_MINUTES_MS = 600_000L; // 10 minutes in milliseconds
 
 
-    public SimulationService(DevicesCache devicesCache, MeasurementProducer producer,  ObjectMapper objectMapper) {
+    public SimulationService(DevicesCache devicesCache, MeasurementProducer producer) {
         this.devicesCache = devicesCache;
         this.producer = producer;
-        this.objectMapper = objectMapper;
 
         this.currentTimestamp = System.currentTimeMillis();
     }
 
     public void generateMeasurements(int count) throws IllegalStateException {
-        List<Long> deviceIds = devicesCache.getDeviceIds();
+        List<Long> deviceIds = devicesCache.get10RandomDeviceIds();
 
         if (deviceIds.isEmpty()) {
             throw new IllegalStateException("No device IDs loaded yet.");
@@ -49,18 +46,13 @@ public class SimulationService {
             for(Long deviceId : deviceIds) {
                 double value = generateConsumptionValue(deviceId, currentTimestamp);
 
-                MeasurementEvent measurement = new MeasurementEvent(
+                MeasurementEvent measurementEvent = new MeasurementEvent(
                         currentTimestamp,
                         deviceId,
                         value
                 );
 
-                try {
-                    String payloadJson = objectMapper.writeValueAsString(measurement);
-                    producer.publishSyncEvent("MEASUREMENT_EVENT", payloadJson);
-                } catch (Exception e) {
-                    System.err.println("Error while trying to send measurement sync message " + measurement + ", error:" + e);
-                }
+                producer.publishMeasurementEvent(measurementEvent);
             }
 
             currentTimestamp += TEN_MINUTES_MS;
