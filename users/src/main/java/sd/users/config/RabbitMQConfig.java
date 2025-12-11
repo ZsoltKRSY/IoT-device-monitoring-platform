@@ -44,8 +44,6 @@ public class RabbitMQConfig {
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         idClassMapping.put("sd.authentication.dtos.SyncEvent", SyncEvent.class);
         idClassMapping.put("sd.devices.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.monitoring.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.device_data_simulator.dtos.SyncEvent", SyncEvent.class);
         classMapper.setIdClassMapping(idClassMapping);
 
         converter.setClassMapper(classMapper);

@@ -2,7 +2,7 @@ package sd.websocket.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -16,22 +16,22 @@ import java.util.Map;
 
 @Configuration
 public class RabbitMQConfig {
-    public static final String SYNC_EXCHANGE = "sync.exchange";
-    public static final String SYNC_QUEUE = "sync.queue.websocket";
+    public static final String OVERCONSUMPTION_DETAILED_EXCHANGE = "overconsumption.exchange";
+    public static final String OVERCONSUMPTION_DETAILED_QUEUE = "overconsumption.queue.devices";
 
     @Bean
-    public FanoutExchange syncExchange() {
-        return new FanoutExchange(SYNC_EXCHANGE);
+    public DirectExchange overconsumptionDetailedExchange() {
+        return new DirectExchange(OVERCONSUMPTION_DETAILED_EXCHANGE, false, false);
     }
 
     @Bean
-    public Queue syncQueue() {
-        return new Queue(SYNC_QUEUE, false);
+    public Queue overconsumptionDetailedQueue() {
+        return new Queue(OVERCONSUMPTION_DETAILED_QUEUE, false);
     }
 
     @Bean
-    public Binding bindingSyncQueue(FanoutExchange syncExchange, Queue syncQueue) {
-        return BindingBuilder.bind(syncQueue).to(syncExchange);
+    public Binding bindingOverconsumptionDetailedQueue(DirectExchange overconsumptionDetailedExchange, Queue overconsumptionDetailedQueue) {
+        return BindingBuilder.bind(overconsumptionDetailedQueue).to(overconsumptionDetailedExchange).with(OVERCONSUMPTION_DETAILED_QUEUE);
     }
 
     @Bean
@@ -44,8 +44,6 @@ public class RabbitMQConfig {
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         idClassMapping.put("sd.authentication.dtos.SyncEvent", SyncEvent.class);
         idClassMapping.put("sd.devices.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.monitoring.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.device_data_simulator.dtos.SyncEvent", SyncEvent.class);
         classMapper.setIdClassMapping(idClassMapping);
 
         converter.setClassMapper(classMapper);

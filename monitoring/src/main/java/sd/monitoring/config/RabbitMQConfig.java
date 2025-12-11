@@ -19,6 +19,9 @@ public class RabbitMQConfig {
     public static final String SYNC_EXCHANGE = "sync.exchange";
     public static final String SYNC_QUEUE = "sync.queue.monitoring";
 
+    public static final String OVERCONSUMPTION_EXCHANGE = "overconsumption.exchange";
+    public static final String OVERCONSUMPTION_QUEUE = "overconsumption.queue.monitoring";
+
     public static final String INGEST_EXCHANGE = "monitoring.ingest.exchange";
     public static final String INGEST_QUEUE_BASE = "ingest.replica.";
 
@@ -41,6 +44,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding bindingSyncQueue(FanoutExchange syncExchange, Queue syncQueue) {
         return BindingBuilder.bind(syncQueue).to(syncExchange);
+    }
+
+    @Bean
+    public DirectExchange overconsumptionExchange() {
+        return new DirectExchange(OVERCONSUMPTION_EXCHANGE, false, false);
+    }
+
+    @Bean
+    public Queue overconsumptionQueue() {
+        return new Queue(OVERCONSUMPTION_QUEUE, false);
+    }
+
+    @Bean
+    public Binding bindingOverconsumptionQueue(DirectExchange overconsumptionExchange, Queue overconsumptionQueue) {
+        return BindingBuilder.bind(overconsumptionQueue).to(overconsumptionExchange).with(OVERCONSUMPTION_QUEUE);
     }
 
     @Bean
@@ -75,7 +93,6 @@ public class RabbitMQConfig {
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         idClassMapping.put("sd.authentication.dtos.SyncEvent", SyncEvent.class);
         idClassMapping.put("sd.devices.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.monitoring.dtos.SyncEvent", SyncEvent.class);
         idClassMapping.put("sd.loadbalancer.dtos.MeasurementEvent", MeasurementEvent.class);
         classMapper.setIdClassMapping(idClassMapping);
 

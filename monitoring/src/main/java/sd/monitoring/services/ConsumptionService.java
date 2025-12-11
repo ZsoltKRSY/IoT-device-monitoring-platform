@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static sd.monitoring.config.RabbitMQConfig.SYNC_EXCHANGE;
+import static sd.monitoring.config.RabbitMQConfig.OVERCONSUMPTION_EXCHANGE;
+import static sd.monitoring.config.RabbitMQConfig.OVERCONSUMPTION_QUEUE;
 
 @Service
 public class ConsumptionService {
@@ -46,9 +47,9 @@ public class ConsumptionService {
         this.objectMapper = objectMapper;
     }
 
-    private void publishSyncEvent(String type, String payload) {
+    private void publishOverconsumptionEvent(String type, String payload) {
         SyncEvent event = new SyncEvent(type, payload);
-        rabbitTemplate.convertAndSend(SYNC_EXCHANGE, "", event);
+        rabbitTemplate.convertAndSend(OVERCONSUMPTION_EXCHANGE, OVERCONSUMPTION_QUEUE, event);
     }
 
     @Transactional
@@ -137,7 +138,7 @@ public class ConsumptionService {
                                 .build()
 
                 );
-                publishSyncEvent("OVERCONSUMPTION", payloadJson);
+                publishOverconsumptionEvent("OVERCONSUMPTION", payloadJson);
             } catch (Exception e) {
                 LOGGER.error("Error while trying to send device overconsumption sync message {}", device, e);
             }
