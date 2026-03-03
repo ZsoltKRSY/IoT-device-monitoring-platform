@@ -7,6 +7,7 @@ import sd.monitoring.dtos.DeviceEvent;
 import sd.monitoring.dtos.MeasurementEvent;
 import sd.monitoring.dtos.SyncEvent;
 
+import static sd.monitoring.config.RabbitMQConfig.INGEST_QUEUE_BASE;
 import static sd.monitoring.config.RabbitMQConfig.SYNC_QUEUE;
 
 @Service
@@ -21,6 +22,11 @@ public class ConsumptionEventListener {
         this.objectMapper = objectMapper;
     }
 
+    @RabbitListener(queues = INGEST_QUEUE_BASE + "#{dynamicReplicaId}")
+    public void handleMeasurementIngestion(MeasurementEvent measurementEvent) {
+        consumptionService.processMeasurement(measurementEvent);
+    }
+
     @RabbitListener(queues = SYNC_QUEUE)
     public void handleSyncEvent(SyncEvent event) {
         try {
@@ -33,6 +39,14 @@ public class ConsumptionEventListener {
                     deviceService.createDevice(deviceCreatedEvent);
                     break;
 
+                case "DEVICE_UPDATED":
+                    DeviceEvent deviceUpdatedEvent = objectMapper.readValue(
+                            event.payload(),
+                            DeviceEvent.class
+                    );
+                    deviceService.updateDevice(deviceUpdatedEvent);
+                    break;
+
                 case "DEVICE_DELETED":
                     DeviceEvent deviceDeletedEvent = objectMapper.readValue(
                             event.payload(),
@@ -41,16 +55,8 @@ public class ConsumptionEventListener {
                     deviceService.deleteDevice(deviceDeletedEvent.getDeviceId());
                     break;
 
-                case "MEASUREMENT_EVENT":
-                    MeasurementEvent measurementEvent = objectMapper.readValue(
-                            event.payload(),
-                            MeasurementEvent.class
-                    );
-                    consumptionService.processMeasurement(measurementEvent);
-                    break;
-
                 default:
-                    System.out.println("Ignored event: " + event.eventType());
+                    //System.out.println("Ignored event: " + event.eventType());
             }
         } catch (Exception e) {
             System.err.println("Error processing sync event: " + e.getMessage());

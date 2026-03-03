@@ -1,17 +1,25 @@
 <nav class="navbar">
     <div class="nav-left">
         <a class="logo" routerLink="/">⚡ Energy Dashboard</a>
+
         <ng-container *ngIf="!authUser?.isAdmin">
             <a routerLink="/my-devices" routerLinkActive="active">My Devices</a>
             <a routerLink="/my-consumption" routerLinkActive="active">Energy Consumption</a>
         </ng-container>
+
         <ng-container *ngIf="authUser?.isAdmin">
             <a routerLink="/admin/devices" routerLinkActive="active">Devices</a>
             <a routerLink="/admin/users" routerLinkActive="active">Users</a>
+            <a routerLink="/admin/customer-service" routerLinkActive="active">Customer Service</a>
+
         </ng-container>
     </div>
 
     <div class="nav-right">
+        <button class="chat-btn" (click)="showChat = !showChat" *ngIf="authUser && !authUser.isAdmin">
+            <span class="material-icons">chat</span>
+        </button>
+
         <button class="profile-btn" (click)="toggleProfile()">
             <span class="dots">⋯</span>
         </button>
@@ -22,6 +30,10 @@
         </div>
     </div>
 </nav>
+
+<div class="chat-overlay" *ngIf="showChat">
+    <app-chat [userId]="authUser!.id" (close)="showChat = false"></app-chat>
+</div>
 
 <app-profile-modal *ngIf="showProfileModal" [authUser]="authUser" [user]="user" (close)="closeProfileModal()">
 </app-profile-modal>

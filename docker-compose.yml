@@ -46,6 +46,12 @@ services:
         condition: service_started
     networks:
       - backend
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/auth" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   auth-db:
     image: postgres:15
@@ -151,13 +157,13 @@ services:
       - backend
 
   # -------------------------------
-  # Monitoring service
+  # Monitoring service (SCALED for Swarm)
   # -------------------------------
   monitoring:
     build:
       context: ./monitoring
       dockerfile: Dockerfile
-    container_name: monitoring-service
+    image: sd/monitoring:latest
     environment:
       DB_IP: monitoring-db
       DB_PORT: 5432
@@ -169,8 +175,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-    ports:
-      - "8084:8084"
+    # ports:
+    #   - "8084:8084" 
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -178,6 +184,9 @@ services:
         condition: service_started
     networks:
       - backend
+    deploy:
+      mode: replicated
+      replicas: 5
 
   monitoring-db:
     image: postgres:15
@@ -191,6 +200,54 @@ services:
     volumes:
       - monitoring-db-data:/var/lib/postgresql/data
       - ./sql/monitoring/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+
+  # -------------------------------
+  # WebSocket service
+  # -------------------------------
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: websocket-service
+    environment:
+      PORT: 8086
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8086:8086"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      ollama-model:
+        condition: service_started
+      authentication:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # -------------------------------
+  # LoadBalancer service
+  # -------------------------------
+  loadbalancer:
+    build:
+      context: ./loadbalancer
+      dockerfile: Dockerfile
+    container_name: loadbalancer-service
+    environment:
+      PORT: 8087
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+    ports:
+      - "8087:8087"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - backend
 
@@ -229,6 +286,27 @@ services:
       timeout: 5s
       retries: 5
 
+  # -------------------------------
+  # Ollama
+  # -------------------------------
+  ollama-model:
+    build:
+      context: ./ollama-model
+      dockerfile: ./Dockerfile
+    container_name: ollama-model
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 10G
+        reservations:
+          memory: 8G
+
 # -------------------------------
 # Networks & Volumes
 # -------------------------------
@@ -241,3 +319,4 @@ volumes:
   users-db-data:
   auth-db-data:
   monitoring-db-data:
+  ollama-data:

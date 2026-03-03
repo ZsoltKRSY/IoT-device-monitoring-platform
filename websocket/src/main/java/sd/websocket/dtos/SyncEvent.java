@@ -1,4 +1,4 @@
-package sd.device_data_simulator.dtos;
+package sd.websocket.dtos;
 
 public record SyncEvent(String eventType, String payload) {
 }

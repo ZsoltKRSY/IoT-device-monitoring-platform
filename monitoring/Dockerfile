@@ -14,5 +14,5 @@ RUN mvn clean install -DskipTests
 FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 COPY --from=build /monitoring/target/monitoring-0.0.1-SNAPSHOT.jar /app/monitoring.jar
-EXPOSE 8080
+EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "monitoring.jar"]

@@ -17,4 +17,16 @@ public class DevicesCache {
     public List<Long> getDeviceIds() {
         return new ArrayList<>(deviceIds);
     }
+
+    public List<Long> get10RandomDeviceIds() {
+        Random random = new Random();
+        List<Long> deviceIds = new ArrayList<>(this.deviceIds);
+        List<Long> ids = new ArrayList<>();
+
+        for(int i = 0; i < 10; i++) {
+            ids.add(deviceIds.get(random.nextInt(deviceIds.size())));
+        }
+
+        return ids;
+    }
 }

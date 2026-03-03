@@ -1,9 +1,6 @@
 package sd.devices.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.FanoutExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -18,6 +15,12 @@ import java.util.Map;
 public class RabbitMQConfig {
     public static final String SYNC_EXCHANGE = "sync.exchange";
     public static final String SYNC_QUEUE = "sync.queue.devices";
+
+    public static final String OVERCONSUMPTION_EXCHANGE = "overconsumption.exchange";
+    public static final String OVERCONSUMPTION_QUEUE = "overconsumption.queue.monitoring";
+
+    public static final String OVERCONSUMPTION_DETAILED_EXCHANGE = "overconsumption.exchange";
+    public static final String OVERCONSUMPTION_DETAILED_QUEUE = "overconsumption.queue.devices";
 
     @Bean
     public FanoutExchange syncExchange() {
@@ -35,6 +38,36 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public DirectExchange overconsumptionExchange() {
+        return new DirectExchange(OVERCONSUMPTION_EXCHANGE, false, false);
+    }
+
+    @Bean
+    public Queue overconsumptionQueue() {
+        return new Queue(OVERCONSUMPTION_QUEUE, false);
+    }
+    
+    @Bean
+    public Binding bindingOverconsumptionQueue(DirectExchange overconsumptionExchange, Queue overconsumptionQueue) {
+        return BindingBuilder.bind(overconsumptionQueue).to(overconsumptionExchange).with(OVERCONSUMPTION_QUEUE);
+    }
+
+    @Bean
+    public DirectExchange overconsumptionDetailedExchange() {
+        return new DirectExchange(OVERCONSUMPTION_DETAILED_EXCHANGE, false, false);
+    }
+
+    @Bean
+    public Queue overconsumptionDetailedQueue() {
+        return new Queue(OVERCONSUMPTION_DETAILED_QUEUE, false);
+    }
+
+    @Bean
+    public Binding bindingOverconsumptionDetailedQueue(DirectExchange overconsumptionDetailedExchange, Queue overconsumptionDetailedQueue) {
+        return BindingBuilder.bind(overconsumptionDetailedQueue).to(overconsumptionDetailedExchange).with(OVERCONSUMPTION_DETAILED_QUEUE);
+    }
+
+    @Bean
     public MessageConverter jsonMessageConverter() {
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
 
@@ -44,7 +77,7 @@ public class RabbitMQConfig {
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         idClassMapping.put("sd.authentication.dtos.SyncEvent", SyncEvent.class);
         idClassMapping.put("sd.devices.dtos.SyncEvent", SyncEvent.class);
-        idClassMapping.put("sd.device_data_simulator.dtos.SyncEvent", SyncEvent.class);
+        idClassMapping.put("sd.monitoring.dtos.SyncEvent", SyncEvent.class);
         classMapper.setIdClassMapping(idClassMapping);
 
         converter.setClassMapper(classMapper);
